@@ -3,8 +3,6 @@
 A VS Code extension for reviewing a branch against a base ref: a file tree of what changed, a
 side-by-side diff per file, and every pane labelled with the commit it shows.
 
-UI mock: [`mock/ui.html`](mock/ui.html).
-
 ## Scope
 
 v1 compares branches and refs only.
