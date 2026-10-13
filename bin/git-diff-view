@@ -1,0 +1,29 @@
+#!/bin/sh
+# Opens a Git Diff comparison in the last active VS Code window.
+#   git-diff-view [repo] [base] [--direct]
+# repo defaults to the current directory; base to the remote's default branch.
+set -eu
+
+repo=""
+base=""
+mode="merge-base"
+for arg in "$@"; do
+  case "$arg" in
+    --direct) mode="direct" ;;
+    -h|--help) sed -n '2,4p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) if [ -z "$repo" ]; then repo="$arg"; elif [ -z "$base" ]; then base="$arg"; fi ;;
+  esac
+done
+
+repo=$(cd "${repo:-.}" && git rev-parse --show-toplevel)
+
+enc() { python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"; }
+
+url="vscode://studykit.git-diff/open?repo=$(enc "$repo")&mode=$mode"
+[ -n "$base" ] && url="$url&base=$(enc "$base")"
+
+if command -v open >/dev/null 2>&1; then
+  open "$url"
+else
+  code --open-url "$url"
+fi

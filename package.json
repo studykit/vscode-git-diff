@@ -1,0 +1,102 @@
+{
+  "name": "git-diff",
+  "displayName": "Git Diff",
+  "description": "Review a branch against a base ref: a file tree of what changed, a commit timeline, and side-by-side diffs labelled with the commit on each side.",
+  "version": "0.1.0",
+  "publisher": "studykit",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/studykit/vscode-git-diff.git"
+  },
+  "private": true,
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "SCM Providers"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onUri",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gitDiff",
+          "title": "Git Diff",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "gitDiff": [
+        {
+          "id": "gitDiff.tree",
+          "name": "Comparisons"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "gitDiff.tree",
+        "contents": "No comparison yet.\n[Compare a repo with a ref](command:gitDiff.open)\nOr run `git-diff-view <repo> [base]` from a terminal."
+      }
+    ],
+    "commands": [
+      { "command": "gitDiff.open", "title": "Compare Repo with Ref…", "category": "Git Diff", "icon": "$(add)" },
+      { "command": "gitDiff.filter", "title": "Filter Files…", "category": "Git Diff", "icon": "$(filter)" },
+      { "command": "gitDiff.clearFilter", "title": "Clear Filter", "category": "Git Diff", "icon": "$(filter-filled)" },
+      { "command": "gitDiff.showAllFiles", "title": "Show Unchanged Files Too", "category": "Git Diff", "icon": "$(list-tree)" },
+      { "command": "gitDiff.showChangedOnly", "title": "Show Changed Files Only", "category": "Git Diff", "icon": "$(list-filter)" },
+      { "command": "gitDiff.oldestFirst", "title": "Timeline: Oldest First", "category": "Git Diff", "icon": "$(arrow-down)" },
+      { "command": "gitDiff.newestFirst", "title": "Timeline: Newest First", "category": "Git Diff", "icon": "$(arrow-up)" },
+      { "command": "gitDiff.refresh", "title": "Refresh", "category": "Git Diff", "icon": "$(refresh)" },
+      { "command": "gitDiff.openAll", "title": "Open All Changes", "category": "Git Diff", "icon": "$(diff-multiple)" },
+      { "command": "gitDiff.remove", "title": "Close Comparison", "category": "Git Diff", "icon": "$(close)" },
+      { "command": "gitDiff.useMergeBase", "title": "Compare from Merge-Base", "category": "Git Diff" },
+      { "command": "gitDiff.useDirect", "title": "Compare with Base Directly", "category": "Git Diff" }
+    ],
+    "menus": {
+      "view/title": [
+        { "command": "gitDiff.open", "when": "view == gitDiff.tree", "group": "navigation@1" },
+        { "command": "gitDiff.filter", "when": "view == gitDiff.tree && !gitDiff.filtered", "group": "navigation@2" },
+        { "command": "gitDiff.clearFilter", "when": "view == gitDiff.tree && gitDiff.filtered", "group": "navigation@2" },
+        { "command": "gitDiff.showAllFiles", "when": "view == gitDiff.tree && !gitDiff.showAll", "group": "navigation@3" },
+        { "command": "gitDiff.showChangedOnly", "when": "view == gitDiff.tree && gitDiff.showAll", "group": "navigation@3" },
+        { "command": "gitDiff.oldestFirst", "when": "view == gitDiff.tree && !gitDiff.oldestFirst", "group": "navigation@4" },
+        { "command": "gitDiff.newestFirst", "when": "view == gitDiff.tree && gitDiff.oldestFirst", "group": "navigation@4" },
+        { "command": "gitDiff.refresh", "when": "view == gitDiff.tree", "group": "navigation@5" },
+        { "command": "gitDiff.filter", "when": "view == gitDiff.tree && gitDiff.filtered", "group": "filter" }
+      ],
+      "view/item/context": [
+        { "command": "gitDiff.openAll", "when": "view == gitDiff.tree && viewItem =~ /^(comparison|range)$/", "group": "inline@1" },
+        { "command": "gitDiff.remove", "when": "view == gitDiff.tree && viewItem == comparison", "group": "inline@2" },
+        { "command": "gitDiff.openAll", "when": "view == gitDiff.tree && viewItem =~ /^(comparison|range)$/", "group": "1_open" },
+        { "command": "gitDiff.useMergeBase", "when": "view == gitDiff.tree && viewItem == comparison", "group": "2_mode@1" },
+        { "command": "gitDiff.useDirect", "when": "view == gitDiff.tree && viewItem == comparison", "group": "2_mode@2" },
+        { "command": "gitDiff.remove", "when": "view == gitDiff.tree && viewItem == comparison", "group": "3_close" }
+      ],
+      "commandPalette": [
+        { "command": "gitDiff.openAll", "when": "false" },
+        { "command": "gitDiff.remove", "when": "false" },
+        { "command": "gitDiff.useMergeBase", "when": "false" },
+        { "command": "gitDiff.useDirect", "when": "false" }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "package": "mkdir -p artifacts && vsce package --no-dependencies --skip-license --out artifacts/git-diff.vsix",
+    "install-ext": "code --install-extension artifacts/git-diff.vsix --force"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/vscode": "1.95.0",
+    "@vscode/vsce": "3.9.2",
+    "typescript": "5.9.3"
+  }
+}
