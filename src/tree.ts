@@ -42,6 +42,8 @@ export type RangeNode = Extract<Node, { kind: "range" }>;
 export interface ViewState {
   filter?: Filter;
   showAll: boolean;
+  /** Files as one flat list, each with its folder as the description, instead of a folder tree. */
+  flat: boolean;
   oldestFirst: boolean;
 }
 
@@ -138,6 +140,23 @@ export class Tree implements vscode.TreeDataProvider<Node> {
     return (await this.changes(cmp, spec)).filter((c) => m.matches(c.path, c.status));
   }
 
+  /** Every folder under `node` that holds a change; Expand All reveals each of them. */
+  async changedFolders(node: Node): Promise<Node[]> {
+    const out: Node[] = [];
+    const walk = async (n: Node): Promise<void> => {
+      for (const child of await this.getChildren(n)) {
+        if (child.kind === "folder" && child.dir.changes > 0) {
+          out.push(child);
+          await walk(child);
+        } else if (child.kind === "range" || child.kind === "timeline") {
+          await walk(child);
+        }
+      }
+    };
+    await walk(node);
+    return out;
+  }
+
   getParent(node: Node): Node | undefined {
     return node.kind === "comparison" ? undefined : node.parent;
   }
@@ -208,6 +227,11 @@ export class Tree implements vscode.TreeDataProvider<Node> {
         if (!changed.has(p) && !allChanged.has(p) && m.matches(p)) entries.push({ name: path.posix.basename(p), path: p });
       }
     }
+    if (this.state().flat) {
+      return entries
+        .sort((a, b) => a.path.localeCompare(b.path))
+        .map((entry) => ({ kind: "file" as const, parent: node, range: node, entry }));
+    }
     const root: Dir = { dirs: new Map(), files: [], changes: 0 };
     for (const e of entries) {
       const parts = e.path.split("/");
@@ -275,7 +299,10 @@ export class Tree implements vscode.TreeDataProvider<Node> {
       case "range":
         return this.rangeItem(node);
       case "folder": {
-        const item = new vscode.TreeItem(node.name, vscode.TreeItemCollapsibleState.Collapsed);
+        // A folder holding changes opens by default, so a deep path does not take one click per level.
+        const state = node.dir.changes > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed;
+        const item = new vscode.TreeItem(node.name, state);
+        item.contextValue = "folder";
         item.id = node.key;
         item.iconPath = vscode.ThemeIcon.Folder;
         const dim = this.state().showAll && node.dir.changes === 0;
@@ -338,7 +365,10 @@ export class Tree implements vscode.TreeDataProvider<Node> {
     item.id = `${range.spec.id}::${entry.path}`;
     item.iconPath = vscode.ThemeIcon.File;
     item.resourceUri = vscode.Uri.from({ scheme: ITEM_SCHEME, path: "/" + entry.path, query: `st=${entry.status ?? "U"}` });
-    if (entry.change?.status === "R") item.description = `← ${entry.change.oldPath}`;
+    const dir = path.posix.dirname(entry.path);
+    item.description = [this.state().flat && dir !== "." ? dir : "", entry.change?.status === "R" ? `← ${entry.change.oldPath}` : ""]
+      .filter(Boolean)
+      .join("  ");
     item.tooltip = entry.path;
     item.command = entry.change
       ? { command: "gitDiff.openChange", title: "Open Diff", arguments: [range.cmp, range.spec, entry.change] }

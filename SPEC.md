@@ -39,7 +39,8 @@ Out of v1:
 
 - A dedicated Activity Bar icon opens the extension's sidebar. Its badge counts the stacked
   comparisons.
-- Toolbar: new comparison, filter, commit order toggle, refresh, collapse all.
+- Toolbar: new comparison, filter, all-files toggle, tree/list toggle, commit order toggle,
+  refresh, collapse all.
 
 ### Comparisons
 
@@ -72,6 +73,12 @@ Each node shows its file count, or `visible / total` while a filter is active.
 ### File tree
 
 - Grouped by folder. A chain of single-child folders collapses into one row, as IntelliJ shows it.
+- A folder that holds changes opens by default; a folder without changes (all-files mode) stays
+  closed. A deep path therefore needs no click per level.
+- **Expand Changed Folders** (inline on a comparison, a range, or a folder) opens every folder
+  under it that holds a change, however deep.
+- A toolbar toggle switches between the folder tree and a flat list, where each file shows its
+  folder as the description.
 - Each file carries its status letter and color: A, M, D, R. File icons follow the active icon
   theme.
 - Refreshes on save; the toolbar also has a refresh button.

@@ -10,6 +10,7 @@ const KEY_COMPARISONS = "gitDiff.comparisons";
 const KEY_FILTER = "gitDiff.filter";
 const KEY_SHOW_ALL = "gitDiff.showAll";
 const KEY_OLDEST_FIRST = "gitDiff.oldestFirst";
+const KEY_FLAT = "gitDiff.flat";
 
 export function activate(context: vscode.ExtensionContext): void {
   const store = context.globalState;
@@ -17,6 +18,7 @@ export function activate(context: vscode.ExtensionContext): void {
     filter: store.get<Filter>(KEY_FILTER),
     showAll: store.get<boolean>(KEY_SHOW_ALL, false),
     oldestFirst: store.get<boolean>(KEY_OLDEST_FIRST, false),
+    flat: store.get<boolean>(KEY_FLAT, false),
   });
   const stored = (): StoredComparison[] => store.get<StoredComparison[]>(KEY_COMPARISONS, []);
 
@@ -30,6 +32,7 @@ export function activate(context: vscode.ExtensionContext): void {
     await vscode.commands.executeCommand("setContext", "gitDiff.filtered", isActive(s.filter));
     await vscode.commands.executeCommand("setContext", "gitDiff.showAll", s.showAll);
     await vscode.commands.executeCommand("setContext", "gitDiff.oldestFirst", s.oldestFirst);
+    await vscode.commands.executeCommand("setContext", "gitDiff.flat", s.flat);
     view.message = isActive(s.filter) ? `필터: ${describe(s.filter)}` : undefined;
     const n = stored().length;
     view.badge = n ? { value: n, tooltip: `${n} comparisons` } : undefined;
@@ -172,6 +175,16 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand("gitDiff.showAllFiles", () => setFlag(KEY_SHOW_ALL, true)),
     vscode.commands.registerCommand("gitDiff.showChangedOnly", () => setFlag(KEY_SHOW_ALL, false)),
+    vscode.commands.registerCommand("gitDiff.viewAsList", () => setFlag(KEY_FLAT, true)),
+    vscode.commands.registerCommand("gitDiff.viewAsTree", () => setFlag(KEY_FLAT, false)),
+
+    vscode.commands.registerCommand("gitDiff.expandAll", async (node?: Node) => {
+      if (!node) return;
+      const folders = await tree.changedFolders(node);
+      await view.reveal(node, { expand: true, select: false, focus: false });
+      for (const f of folders) await view.reveal(f, { expand: true, select: false, focus: false });
+    }),
+
     vscode.commands.registerCommand("gitDiff.oldestFirst", () => setFlag(KEY_OLDEST_FIRST, true)),
     vscode.commands.registerCommand("gitDiff.newestFirst", () => setFlag(KEY_OLDEST_FIRST, false)),
 
