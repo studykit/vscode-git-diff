@@ -2,6 +2,7 @@ src/**
 mock/**
 node_modules/**
 **/*.map
+**/*.swp
 tsconfig.json
 SPEC.md
 .gitignore

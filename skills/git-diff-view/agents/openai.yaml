@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Diff View"
+  short_description: "Open branch comparisons in VS Code"
+  default_prompt: "Use $git-diff-view to open this repository’s changes against origin/main in VS Code."

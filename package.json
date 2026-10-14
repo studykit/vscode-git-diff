@@ -4,6 +4,7 @@
   "description": "Review a branch against a base ref: a file tree of what changed, a commit timeline, and side-by-side diffs labelled with the commit on each side.",
   "version": "0.1.0",
   "publisher": "studykit",
+  "icon": "media/extension-icon.png",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
