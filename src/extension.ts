@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
 import * as git from "./git";
+import { installCli } from "./cli";
 import { CONTENT_SCHEME, ContentProvider, contentUri, SideLabelLens } from "./content";
 import { ALL_STATUSES, describe, Filter, isActive } from "./filter";
 import { Mode, resolve, Resolution, Resolved, StoredComparison } from "./model";
@@ -102,6 +103,8 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
 
     vscode.commands.registerCommand("gitDiff.noop", () => undefined),
+
+    vscode.commands.registerCommand("gitDiff.installCli", () => installCli(context.extensionPath)),
 
     vscode.commands.registerCommand("gitDiff.open", async () => {
       const candidates = new Set<string>([

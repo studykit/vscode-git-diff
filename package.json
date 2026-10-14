@@ -42,10 +42,15 @@
     "viewsWelcome": [
       {
         "view": "gitDiff.tree",
-        "contents": "No comparison yet.\n[Compare a repo with a ref](command:gitDiff.open)\nOr run `git-diff-view <repo> [base]` from a terminal."
+        "contents": "No comparison yet.\n[Compare a repo with a ref](command:gitDiff.open)\n[Install git-diff-view in ~/.local/bin](command:gitDiff.installCli)\nOr run `git-diff-view <repo> [base]` from a terminal."
       }
     ],
     "commands": [
+      {
+        "command": "gitDiff.installCli",
+        "title": "Install git-diff-view in ~/.local/bin",
+        "category": "Git Diff"
+      },
       {
         "command": "gitDiff.open",
         "title": "Compare Repo with Ref…",

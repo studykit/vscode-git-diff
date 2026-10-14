@@ -25,6 +25,10 @@ Out of v1:
   The last active VS Code window handles it; no attempt is made to route it to the window that
   has the repo open.
 - A shell helper, `git-diff-view <repo> [base]`, builds that URI and sends it.
+- **Git Diff: Install git-diff-view in ~/.local/bin** copies the bundled helper to the user's
+  executable directory on macOS/Linux and sets its executable permissions. The command is also
+  linked from the empty Comparisons view. It confirms before replacing a different file and
+  provides a PATH command when `~/.local/bin` is absent from the extension host's PATH.
 - A command palette entry picks a repo and a ref.
 
 ## Comparison range
@@ -136,4 +140,3 @@ in the same form as a diff tab.
 - Whether the CodeLens per-pane label works on both diff panes (see above).
 - Whether opening a diff can force collapse-unchanged-regions off per editor, or only through the
   user setting `diffEditor.hideUnchangedRegions.enabled`.
-- The shell helper's name and where it is installed.
