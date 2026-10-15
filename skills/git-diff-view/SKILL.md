@@ -1,16 +1,16 @@
 ---
 name: git-diff-view
-description: "Open repository comparisons in the Git Diff VS Code extension using git-diff-view. Use when the user asks to view branch or working-tree changes in VS Code, or explicitly requests git-diff-view. Ordinary textual Git diffs and code review do not require this skill."
+description: "Open repository comparisons in the Git Diff View VS Code extension using git-diff-view. Use when the user asks to view branch or working-tree changes in VS Code, or explicitly requests git-diff-view. Ordinary textual Git diffs and code review do not require this skill."
 ---
 
 # Git Diff View
 
 Use the installed `git-diff-view` CLI to request a comparison in VS Code. It dispatches a URI
-to the `studykit.git-diff` extension; it does not return diff text or review findings.
+to the `studykit.git-diff-view` extension; it does not return diff text or review findings.
 
 ## Find the command
 
-This workflow requires a local macOS or Linux environment, the Git Diff extension in VS Code,
+This workflow requires a local macOS or Linux environment, the Git Diff View extension in VS Code,
 `git`, and `python3`. The launcher uses `open` on macOS or `code --open-url` on Linux.
 
 Locate `git-diff-view` on `PATH`. If it is absent, check whether

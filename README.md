@@ -1,4 +1,4 @@
-# Git Diff
+# Git Diff View
 
 Review your branch's changes in VS Code, from the point it diverged from a base branch to your
 current files. Browse changed files, step through commits, and open side-by-side diffs with each
@@ -16,11 +16,11 @@ revision clearly labelled.
 
 Requires **VS Code 1.95 or later** and **Git** available on your `PATH`.
 
-Install [Git Diff from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=studykit.git-diff),
+Install [Git Diff View from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=studykit.git-diff-view),
 or run:
 
 ```sh
-code --install-extension studykit.git-diff
+code --install-extension studykit.git-diff-view
 ```
 
 To install a downloaded `.vsix` file, open the Command Palette and run **Extensions: Install from

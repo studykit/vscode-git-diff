@@ -21,7 +21,7 @@ Out of v1:
 
 ## Launching a comparison
 
-- URI: `vscode://studykit.git-diff/open?repo=<abs path>&base=<ref>`, sent with `open`.
+- URI: `vscode://studykit.git-diff-view/open?repo=<abs path>&base=<ref>`, sent with `open`.
   The last active VS Code window handles it; no attempt is made to route it to the window that
   has the repo open.
 - A shell helper, `git-diff-view <repo> [base]`, builds that URI and sends it.
