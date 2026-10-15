@@ -10,9 +10,18 @@ revision clearly labelled.
 - Open all visible changes together in VS Code's multi-diff editor.
 - Keep multiple repository comparisons in one sidebar, restored across VS Code restarts.
 
+![Git Diff demo: open a comparison, inspect a commit, and review all changed files together](media/demo.gif)
+
 ## Installation
 
 Requires **VS Code 1.95 or later** and **Git** available on your `PATH`.
+
+Install [Git Diff from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=studykit.git-diff),
+or run:
+
+```sh
+code --install-extension studykit.git-diff
+```
 
 To install a downloaded `.vsix` file, open the Command Palette and run **Extensions: Install from
 VSIX…**, then select the file. After an update, run **Developer: Reload Window** if needed.
@@ -128,6 +137,43 @@ export PATH="$HOME/.local/bin:$PATH"
 ```
 
 The installer offers **Copy PATH Command** when this directory is missing from VS Code's `PATH`.
+
+## Use with Claude Code or Codex
+
+The shared `git-diff-view` skill lets an agent open comparisons using the terminal command.
+Install `git-diff-view` as described above first. The skill installer requires Node.js and npm.
+
+### Project installation (default)
+
+Run this from the root of the project where you use your agent:
+
+```sh
+npx skills add studykit/vscode-git-diff \
+  --skill git-diff-view \
+  --agent claude-code codex
+```
+
+Choose **Symlink** when asked for the installation method. The skill is installed in the
+project's `.agents/skills/git-diff-view/` for Codex, with a link from
+`.claude/skills/git-diff-view/` for Claude Code. Choose only the agent you use by changing the
+`--agent` argument to `claude-code` or `codex`.
+
+Invoke it in Claude Code with `/git-diff-view origin/main`, or in Codex with
+`$git-diff-view` followed by a request such as "Show this repository's changes against
+origin/main in VS Code."
+
+### Global installation (optional)
+
+To make the skill available across all your projects, explicitly add `--global`:
+
+```sh
+npx skills add studykit/vscode-git-diff \
+  --skill git-diff-view \
+  --agent claude-code codex \
+  --global
+```
+
+The CLI remains at `~/.local/bin/git-diff-view` for either installation scope.
 
 ## Troubleshooting
 
