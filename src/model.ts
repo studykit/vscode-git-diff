@@ -7,6 +7,8 @@ export interface StoredComparison {
   id: string;
   repo: string;
   base: string;
+  /** Omitted for the working tree; otherwise the ref on the right. */
+  head?: string;
   mode: Mode;
 }
 
@@ -20,7 +22,7 @@ export interface Resolved {
   head: git.CommitInfo;
   branch: string;
   dirty: boolean;
-  /** `left..HEAD`, newest first. */
+  /** `left..head`, newest first. */
   commits: git.CommitInfo[];
 }
 
@@ -29,14 +31,14 @@ export type Resolution = { ok: true; value: Resolved } | { ok: false; stored: St
 export async function resolve(stored: StoredComparison): Promise<Resolution> {
   try {
     const { repo, base, mode } = stored;
-    const headSha = await git.revParse(repo, "HEAD");
+    const headSha = await git.revParse(repo, stored.head ?? "HEAD");
     const baseSha = await git.revParse(repo, base);
     const leftSha = mode === "merge-base" ? await git.mergeBase(repo, baseSha, headSha) : baseSha;
     const [left, head, branch, dirty, commits, name] = await Promise.all([
       git.commitInfo(repo, leftSha),
       git.commitInfo(repo, headSha),
-      git.currentBranch(repo),
-      git.isDirty(repo),
+      stored.head ? Promise.resolve(stored.head) : git.currentBranch(repo),
+      stored.head ? Promise.resolve(false) : git.isDirty(repo),
       git.commitsBetween(repo, leftSha, headSha),
       git.repoName(repo),
     ]);

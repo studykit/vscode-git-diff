@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Compare two commits, branches, or tags from the CLI or **Compare Two Refs…** without changing the working tree.
+- Wait for VS Code to confirm the comparison is visible; return failures for extension errors and timeouts.
+- Keep agent success replies brief, without window-routing details or repeated usage instructions.
+
 ## 0.1.0
 
 - Compare repositories with a base ref, starting from the merge-base or the selected ref directly.

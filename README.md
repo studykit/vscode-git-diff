@@ -5,6 +5,7 @@ current files. Browse changed files, step through commits, and open side-by-side
 revision clearly labelled.
 
 - Review the combined changes or inspect one commit at a time.
+- Compare any two commits, branches, or tags without checking them out.
 - Include saved uncommitted changes and untracked files.
 - Browse files as a folder tree or a flat list, with path and status filters.
 - Open all visible changes together in VS Code's multi-diff editor.
@@ -47,13 +48,17 @@ To compare the selected base ref's current commit directly with your working tre
 the comparison and choose **Compare with Base Directly**. Choose **Compare from Merge-Base** to
 switch back.
 
+To compare two committed revisions, run **Git Diff: Compare Two Refs…** and enter the ref or
+commit SHA for each side. This compares them directly and excludes working-tree changes.
+The comparison's context menu can switch to the merge-base of those two refs.
+
 ## Review changes
 
 Each comparison contains:
 
 - **Revision labels** showing the commit, branch or ref, and commit subject on each side.
 - **All changes** (`전체 변경`) for the combined difference from the comparison's starting commit
-  to your current files.
+  to your current files or the selected head ref.
 - **Timeline** (`타임라인`) for individual commits, plus **Uncommitted changes** (`커밋 안 한 변경`)
   when your working tree has changes. Click a file under a commit to compare it with that
   commit's first parent.
@@ -121,13 +126,26 @@ git-diff-view /path/to/repo origin/main
 
 # Compare the base ref directly with the current repository's files.
 git-diff-view . origin/main --direct
+
+# Compare two commits directly, excluding working-tree changes.
+git-diff-view . HEAD~2 HEAD~1
+
+# Compare another branch from its merge-base with main.
+git-diff-view . origin/main feature/example --merge-base
 ```
 
-Syntax: `git-diff-view [repo] [base] [--direct]`
+Syntax: `git-diff-view [repo] [base] [head] [--direct | --merge-base] [--timeout SECONDS]`
 
 `repo` defaults to the current directory. `base` defaults to `origin/HEAD` when available,
-falling back to common `develop`, `main`, or `master` refs, then `HEAD`. The comparison opens in
-the last active VS Code window. Run `git-diff-view --help` for a usage reminder.
+falling back to common `develop`, `main`, or `master` refs, then `HEAD`. Without `head`, the
+right side is the working tree and the default mode is merge-base. With `head`, the right side
+is that ref's committed files and the default mode is direct.
+
+The CLI waits up to 30 seconds for the extension to resolve the refs, load the changed-file
+list, and reveal the comparison in a visible sidebar. It exits 0 only after confirmation;
+extension errors, launch failures, and timeouts exit nonzero. Use `--timeout SECONDS` to adjust
+the wait. If confirmation times out, update both the extension and the installed CLI and check
+for a pending VS Code URI prompt. Run `git-diff-view --help` for a usage reminder.
 
 If your terminal cannot find `git-diff-view`, add this to your shell startup file (for example,
 `~/.zshrc`) and open a new terminal:

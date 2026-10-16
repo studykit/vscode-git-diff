@@ -59,7 +59,7 @@ export async function repoName(repo: string): Promise<string> {
 }
 
 export async function revParse(repo: string, ref: string): Promise<string> {
-  return (await git(repo, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`])).trim();
+  return (await git(repo, ["rev-parse", "--verify", "--quiet", "--end-of-options", `${ref}^{commit}`])).trim();
 }
 
 export async function mergeBase(repo: string, a: string, b: string): Promise<string> {

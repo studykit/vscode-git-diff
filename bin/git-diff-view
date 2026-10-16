@@ -1,29 +1,94 @@
-#!/bin/sh
-# Opens a Git Diff comparison in the last active VS Code window.
-#   git-diff-view [repo] [base] [--direct]
-# repo defaults to the current directory; base to the remote's default branch.
-set -eu
+#!/usr/bin/env python3
+"""Open a Git Diff View comparison and wait for VS Code to confirm it is visible."""
 
-repo=""
-base=""
-mode="merge-base"
-for arg in "$@"; do
-  case "$arg" in
-    --direct) mode="direct" ;;
-    -h|--help) sed -n '2,4p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-    *) if [ -z "$repo" ]; then repo="$arg"; elif [ -z "$base" ]; then base="$arg"; fi ;;
-  esac
-done
+import argparse
+import json
+import math
+import secrets
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.parse
 
-repo=$(cd "${repo:-.}" && git rev-parse --show-toplevel)
 
-enc() { python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"; }
+def positive_timeout(value):
+    seconds = float(value)
+    if not math.isfinite(seconds) or seconds <= 0:
+        raise argparse.ArgumentTypeError("must be a positive number of seconds")
+    return seconds
 
-url="vscode://studykit.git-diff-view/open?repo=$(enc "$repo")&mode=$mode"
-[ -n "$base" ] && url="$url&base=$(enc "$base")"
 
-if command -v open >/dev/null 2>&1; then
-  open "$url"
-else
-  code --open-url "$url"
-fi
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("repo", nargs="?", default=".", help="repository path (default: current directory)")
+    parser.add_argument("base", nargs="?", help="base commit, branch, or tag (default: repository's default branch)")
+    parser.add_argument("head", nargs="?", help="right-hand commit, branch, or tag (default: working tree)")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--direct", dest="mode", action="store_const", const="direct", help="compare the base itself")
+    modes.add_argument("--merge-base", dest="mode", action="store_const", const="merge-base", help="compare from the common ancestor")
+    parser.add_argument("--timeout", type=positive_timeout, default=30, metavar="SECONDS", help="wait for VS Code (default: 30 seconds)")
+    args = parser.parse_args()
+    mode = args.mode or ("direct" if args.head is not None else "merge-base")
+
+    try:
+        repo = subprocess.run(["git", "-C", args.repo, "rev-parse", "--show-toplevel"], check=True, capture_output=True, text=True).stdout.rstrip("\n")
+        for ref in (args.base, args.head):
+            if ref is not None:
+                checked = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet", "--end-of-options", ref + "^{commit}"], capture_output=True, text=True)
+                if checked.returncode:
+                    raise ValueError("Invalid commit, branch, or tag: " + ref)
+
+        request = secrets.token_hex(32)
+        with tempfile.NamedTemporaryFile(prefix="git-diff-view-" + request + "-", suffix=".json") as receipt:
+            query = {"repo": repo, "mode": mode, "receipt": receipt.name, "request": request}
+            if args.base is not None:
+                query["base"] = args.base
+            if args.head is not None:
+                query["head"] = args.head
+            url = "vscode://studykit.git-diff-view/open?" + urllib.parse.urlencode(query)
+            launcher = ["open", url] if sys.platform == "darwin" else ["code", "--open-url", url]
+            deadline = time.monotonic() + args.timeout
+            subprocess.run(launcher, check=True, capture_output=True, text=True, timeout=args.timeout)
+            while True:
+                receipt.seek(0)
+                data = receipt.read(65537)
+                if len(data) > 65536:
+                    raise ValueError("Invalid comparison confirmation")
+                if data.endswith(b"\n"):
+                    response = json.loads(data)
+                    break
+                if time.monotonic() >= deadline:
+                    print("git-diff-view: timed out waiting for VS Code to display the comparison. Check the extension is updated and enabled, and accept any pending URI prompt.", file=sys.stderr)
+                    return 1
+                time.sleep(min(0.05, max(0, deadline - time.monotonic())))
+
+        if not isinstance(response, dict) or response.get("request") != request:
+            raise ValueError("Invalid comparison confirmation")
+        if response.get("ok") is True:
+            if (response.get("repo") != repo or response.get("mode") != mode
+                    or response.get("head") != (args.head if args.head is not None else "worktree")
+                    or not isinstance(response.get("base"), str)
+                    or (args.base is not None and response["base"] != args.base)
+                    or not all(isinstance(response.get(key), str) and len(response[key]) >= 7 for key in ("left", "right"))
+                    or type(response.get("changedFiles")) is not int or response["changedFiles"] < 0):
+                raise ValueError("Invalid comparison confirmation")
+        elif response.get("ok") is not False or not isinstance(response.get("error"), str):
+            raise ValueError("Invalid comparison confirmation")
+        if not response["ok"]:
+            print("git-diff-view: " + response["error"], file=sys.stderr)
+            return 1
+        print("Opened comparison: {} ↔ {} ({} changed files).".format(response["left"][:8], response["right"][:8], response["changedFiles"]))
+        return 0
+    except subprocess.CalledProcessError as error:
+        print("git-diff-view: " + (error.stderr.strip() or str(error)), file=sys.stderr)
+    except (OSError, ValueError, subprocess.TimeoutExpired) as error:
+        print("git-diff-view: " + str(error), file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(130)

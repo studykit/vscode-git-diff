@@ -2,7 +2,7 @@
   "name": "git-diff-view",
   "displayName": "Git Diff View",
   "description": "Review a branch against a base ref: a file tree of what changed, a commit timeline, and side-by-side diffs labelled with the commit on each side.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "studykit",
   "icon": "media/extension-icon.png",
   "license": "UNLICENSED",
@@ -72,6 +72,11 @@
         "title": "Compare Repo with Ref…",
         "category": "Git Diff",
         "icon": "$(add)"
+      },
+      {
+        "command": "gitDiff.compareRefs",
+        "title": "Compare Two Refs…",
+        "category": "Git Diff"
       },
       {
         "command": "gitDiff.filter",
@@ -281,6 +286,7 @@
     }
   },
   "scripts": {
+    "test": "npm run compile && node --test tests/*.test.cjs",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p .",
     "watch": "tsc -w -p .",

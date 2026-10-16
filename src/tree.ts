@@ -60,7 +60,9 @@ export function allRange(cmp: Resolved): RangeSpec {
   return {
     id: `${cmp.stored.id}/all`,
     left: { rev: cmp.left.sha, short: `${cmp.left.short} (${cmp.leftRef})`, long: `◀ ${cmp.left.short} ${cmp.leftRef} · ${cmp.left.subject}` },
-    right: worktreeSide(cmp),
+    right: cmp.stored.head
+      ? { rev: cmp.head.sha, short: `${cmp.head.short} (${cmp.branch})`, long: `▶ ${cmp.head.short} ${cmp.branch} · ${cmp.head.subject}` }
+      : worktreeSide(cmp),
   };
 }
 
@@ -177,7 +179,10 @@ export class Tree implements vscode.TreeDataProvider<Node> {
             side: all.right,
             detail: `${cmp.branch} · ${cmp.head.subject}${cmp.dirty ? " + 커밋 안 한 변경" : ""}`,
           },
-          { kind: "range", parent: node, cmp, spec: all, label: "전체 변경", icon: "layers", extra: "분기점 ↔ worktree" },
+          {
+            kind: "range", parent: node, cmp, spec: all, label: "전체 변경", icon: "layers",
+            extra: `${cmp.leftRef} ↔ ${cmp.stored.head ?? "worktree"}`,
+          },
           { kind: "timeline", parent: node, cmp },
         ];
       }

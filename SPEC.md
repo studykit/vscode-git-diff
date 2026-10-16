@@ -25,17 +25,25 @@ Out of v1:
   The last active VS Code window handles it; no attempt is made to route it to the window that
   has the repo open.
 - A shell helper, `git-diff-view <repo> [base]`, builds that URI and sends it.
+- An optional `head=<ref>` selects committed files on the right. The CLI accepts
+  `git-diff-view [repo] [base] [head] [--direct | --merge-base] [--timeout SECONDS]`.
+- The CLI waits for a private temporary-file receipt. The extension confirms only after
+  resolving the refs, loading the changes, and revealing the comparison in a visible sidebar.
+  Launch failures, extension errors, and confirmation timeouts exit nonzero.
 - **Git Diff: Install git-diff-view in ~/.local/bin** copies the bundled helper to the user's
   executable directory on macOS/Linux and sets its executable permissions. The command is also
   linked from the empty Comparisons view. It confirms before replacing a different file and
   provides a PATH command when `~/.local/bin` is absent from the extension host's PATH.
 - A command palette entry picks a repo and a ref.
+- **Compare Two Refs…** accepts a commit SHA, branch, or tag for each side.
 
 ## Comparison range
 
 - Default: merge-base of `base` and `HEAD` → working tree, including uncommitted changes and
   untracked files.
 - Option: compare against `base` directly instead of the merge-base.
+- With `head`, compare the selected refs' committed files and exclude the working tree.
+  The default mode is direct; `--merge-base` starts at the common ancestor of `base` and `head`.
 
 ## View
 
@@ -57,7 +65,7 @@ Out of v1:
 
 ### Children of a comparison
 
-1. **All changes** — merge-base ↔ working tree.
+1. **All changes** — resolved base ↔ working tree or selected head.
 2. **Timeline** — the history from the merge-base to the working tree, drawn like a commit graph:
    one lane line joins every row, so the direction reads at a glance.
    - One end is the **merge-base** row (◆, tagged "분기점"); it has no files.

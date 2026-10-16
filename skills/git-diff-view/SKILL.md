@@ -1,12 +1,13 @@
 ---
 name: git-diff-view
-description: "Open repository comparisons in the Git Diff View VS Code extension using git-diff-view. Use when the user asks to view branch or working-tree changes in VS Code, or explicitly requests git-diff-view. Ordinary textual Git diffs and code review do not require this skill."
+description: "Open repository comparisons in the Git Diff View VS Code extension using git-diff-view. Use when the user asks to view branch, commit, or working-tree changes in VS Code, or explicitly requests git-diff-view. Ordinary textual Git diffs and code review do not require this skill."
 ---
 
 # Git Diff View
 
-Use the installed `git-diff-view` CLI to request a comparison in VS Code. It dispatches a URI
-to the `studykit.git-diff-view` extension; it does not return diff text or review findings.
+Use the installed `git-diff-view` CLI to open a comparison in VS Code. It waits for the
+`studykit.git-diff-view` extension to resolve and display the comparison, then reports success
+or failure. It does not return diff text or review findings.
 
 ## Find the command
 
@@ -27,18 +28,19 @@ available, tell the user to run **Git Diff: Install git-diff-view in ~/.local/bi
 - Use the default **merge-base** mode for changes since the current branch diverged from the
   base. Add `--direct` when the user wants the base ref's current commit compared directly
   with the working tree.
+- To compare two commits, branches, or tags, supply both `base` and `head`. This defaults to
+  **direct** mode. Use `--merge-base` explicitly for changes since the two refs diverged.
 
-The right side is always the selected repository's current working tree, including saved
-uncommitted changes and untracked files. Unsaved editor buffers are not included. The command
-does not select another head branch; opening a comparison does not require switching branches
-or modifying the repository.
+With no `head`, the right side is the repository's current working tree, including saved
+uncommitted changes and untracked files. With `head`, it is that ref's committed files;
+working-tree changes are excluded. Opening a comparison never requires switching branches.
 
 ## Launch
 
 Supported syntax:
 
 ```sh
-git-diff-view [repo] [base] [--direct]
+git-diff-view [repo] [base] [head] [--direct | --merge-base] [--timeout SECONDS]
 ```
 
 Always supply the repository argument when supplying a base ref. For the current repository,
@@ -54,24 +56,26 @@ git-diff-view "/path/to/my repo" origin/main
 # Compare the selected base commit directly with the current files.
 git-diff-view . origin/main --direct
 
+# Compare two committed revisions directly, without checking either out.
+git-diff-view . HEAD~2 HEAD~1
+
 # Use the installed absolute path when it is missing from PATH.
 "$HOME/.local/bin/git-diff-view" . origin/main
 ```
 
-Use the executable located above and the user's actual repository and ref. Available options
-are `--direct` and `--help`. File filters, timeline navigation, and **Open All Changes** are
+Use the executable located above and the user's actual repository and refs. The default wait
+for confirmation is 30 seconds. File filters, timeline navigation, and **Open All Changes** are
 controls in the extension's sidebar, not CLI flags.
 
 ## Report the result
 
-The comparison is sent to the last active VS Code window, even when that window has a
-different workspace open. Report the repository, requested base (or automatic selection),
-and comparison mode.
+On success, reply with one short confirmation in the user's language, for example
+"두 커밋 비교를 열었습니다." Identify the refs only when needed to distinguish multiple requests.
+Omit window-routing details, repeated repository/base/mode summaries, timeline instructions,
+verification caveats, and follow-up offers unless the user asks for them.
 
-A successful CLI exit means the launcher accepted the URI. The extension handles it
-asynchronously, so only claim that the comparison is visibly open if you have verified it in
-VS Code. Do not infer file changes or review findings from the command's output.
-
-If launching fails, report the concrete error and the missing prerequisite when identifiable.
-If VS Code shows a repository or ref error, resolve that cause before sending the request
-again. For a textual diff or code review, inspect Git and the files separately.
+Exit 0 confirms that the extension resolved the refs, loaded the changed-file list, and
+revealed the comparison in a visible sidebar. A timeout or extension error exits nonzero;
+report that concrete error briefly and resolve the cause before retrying. Never turn a
+timeout into a success claim. Do not infer review findings from a successful launch.
+For a textual diff or code review, inspect Git and the files separately.
